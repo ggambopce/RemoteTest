@@ -56,6 +56,7 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Meta.cs" />
+    <Compile Include="NetworkInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RecvEventServer.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="SendEventClient.cs" />
     <Compile Include="SetupClient.cs" />
     <Compile Include="SetupServer.cs" />
+    <Compile Include="WrapNative.cs" />
     <Compile Include="VirtualCursorForm.cs">
       <SubType>Form</SubType>
     </Compile>

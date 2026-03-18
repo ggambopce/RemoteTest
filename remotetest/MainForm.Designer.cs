@@ -2,127 +2,96 @@ namespace remotetest
 {
     partial class MainForm
     {
-        /// <summary>
-        /// 필수 디자이너 변수입니다.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// 사용 중인 모든 리소스를 정리합니다.
-        /// </summary>
-        /// <param name="disposing">관리되는 리소스를 삭제해야 하면 true이고, 그렇지 않으면 false입니다.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
-            {
                 components.Dispose();
-            }
             base.Dispose(disposing);
         }
 
-        #region Windows Form 디자이너에서 생성한 코드
-
-        /// <summary>
-        /// 디자이너 지원에 필요한 메서드입니다.
-        /// 이 메서드의 내용을 코드 편집기로 수정하지 마세요.
-        /// </summary>
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.label_host = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.tbox_ip = new System.Windows.Forms.TextBox();
             this.btn_setting = new System.Windows.Forms.Button();
-            this.label_controller = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             this.tbox_controller_ip = new System.Windows.Forms.TextBox();
             this.btn_ok = new System.Windows.Forms.Button();
             this.timer_send_img = new System.Windows.Forms.Timer(this.components);
             this.noti = new System.Windows.Forms.NotifyIcon(this.components);
             this.SuspendLayout();
-            //
-            // label_host
-            //
-            this.label_host.AutoSize = true;
-            this.label_host.Location = new System.Drawing.Point(24, 40);
-            this.label_host.Name = "label_host";
-            this.label_host.Size = new System.Drawing.Size(88, 12);
-            this.label_host.TabIndex = 0;
-            this.label_host.Text = "원격 호스트 주소:";
-            //
+            // label1
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 20);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(61, 12);
+            this.label1.Text = "연결할 IP:";
             // tbox_ip
-            //
-            this.tbox_ip.Location = new System.Drawing.Point(120, 37);
+            this.tbox_ip.Location = new System.Drawing.Point(80, 17);
             this.tbox_ip.Name = "tbox_ip";
-            this.tbox_ip.Size = new System.Drawing.Size(240, 21);
-            this.tbox_ip.TabIndex = 1;
-            //
+            this.tbox_ip.Size = new System.Drawing.Size(150, 21);
+            this.tbox_ip.TabIndex = 0;
             // btn_setting
-            //
-            this.btn_setting.Location = new System.Drawing.Point(374, 35);
+            this.btn_setting.Location = new System.Drawing.Point(240, 15);
             this.btn_setting.Name = "btn_setting";
-            this.btn_setting.Size = new System.Drawing.Size(82, 25);
-            this.btn_setting.TabIndex = 2;
-            this.btn_setting.Text = "설정하기";
+            this.btn_setting.Size = new System.Drawing.Size(75, 23);
+            this.btn_setting.TabIndex = 1;
+            this.btn_setting.Text = "연결";
             this.btn_setting.UseVisualStyleBackColor = true;
-            //
-            // label_controller
-            //
-            this.label_controller.AutoSize = true;
-            this.label_controller.Location = new System.Drawing.Point(12, 90);
-            this.label_controller.Name = "label_controller";
-            this.label_controller.Size = new System.Drawing.Size(100, 12);
-            this.label_controller.TabIndex = 3;
-            this.label_controller.Text = "원격 컨트롤러 주소:";
-            //
+            this.btn_setting.Click += new System.EventHandler(this.btn_setting_Click);
+            // label2
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 60);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(55, 12);
+            this.label2.Text = "요청 IP:";
             // tbox_controller_ip
-            //
-            this.tbox_controller_ip.Location = new System.Drawing.Point(120, 87);
+            this.tbox_controller_ip.Location = new System.Drawing.Point(80, 57);
             this.tbox_controller_ip.Name = "tbox_controller_ip";
-            this.tbox_controller_ip.Size = new System.Drawing.Size(240, 21);
-            this.tbox_controller_ip.TabIndex = 4;
-            //
+            this.tbox_controller_ip.ReadOnly = true;
+            this.tbox_controller_ip.Size = new System.Drawing.Size(150, 21);
+            this.tbox_controller_ip.TabIndex = 2;
             // btn_ok
-            //
-            this.btn_ok.Location = new System.Drawing.Point(374, 85);
+            this.btn_ok.Enabled = false;
+            this.btn_ok.Location = new System.Drawing.Point(240, 55);
             this.btn_ok.Name = "btn_ok";
-            this.btn_ok.Size = new System.Drawing.Size(82, 25);
-            this.btn_ok.TabIndex = 5;
-            this.btn_ok.Text = "원격 제어 허용";
+            this.btn_ok.Size = new System.Drawing.Size(75, 23);
+            this.btn_ok.TabIndex = 3;
+            this.btn_ok.Text = "수락";
             this.btn_ok.UseVisualStyleBackColor = true;
-            //
+            this.btn_ok.Click += new System.EventHandler(this.btn_ok_Click);
             // timer_send_img
-            //
             this.timer_send_img.Interval = 100;
-            //
+            this.timer_send_img.Tick += new System.EventHandler(this.timer_send_img_Tick);
             // noti
-            //
-            this.noti.Text = "원격제어기";
-            this.noti.Visible = false;
-            //
+            this.noti.Text = "remotetest";
+            this.noti.Visible = true;
+            this.noti.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.noti_MouseDoubleClick);
             // MainForm
-            //
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(480, 160);
-            this.Controls.Add(this.label_host);
+            this.ClientSize = new System.Drawing.Size(480, 217);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.tbox_ip);
             this.Controls.Add(this.btn_setting);
-            this.Controls.Add(this.label_controller);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.tbox_controller_ip);
             this.Controls.Add(this.btn_ok);
             this.Name = "MainForm";
-            this.Text = "원격제어기";
+            this.Text = "Remote Control";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
-        #endregion
-
-        private System.Windows.Forms.Label label_host;
+        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox tbox_ip;
         private System.Windows.Forms.Button btn_setting;
-        private System.Windows.Forms.Label label_controller;
+        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox tbox_controller_ip;
         private System.Windows.Forms.Button btn_ok;
         private System.Windows.Forms.Timer timer_send_img;
