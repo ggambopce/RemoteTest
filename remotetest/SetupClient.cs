@@ -5,8 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-
-namespace 원격제어기
+namespace remotetest
 {
     ///
     /// 원격 제어 요청 클라이언트 - 정적 클래스
@@ -17,8 +16,28 @@ namespace 원격제어기
         public static event EventHandler ConnectFailedEventHandler = null;
         static Socket sock;
         ///
-        /// 원격 제어 요청 메서드
-        /// 
+        /// 릴레이 서버를 통해 원격 제어 요청을 전달하는 메서드
+        ///
+        public static void SetupRelay(string relayIp, int relayPort)
+        {
+            try
+            {
+                Socket s = NetworkInfo.ConnectToRelay(relayIp, relayPort, RelayRole.Ctrl, RelayChannel.Setup);
+                // 릴레이가 호스트에 IP를 전달 후 소켓을 닫음
+                s.Close();
+                if (ConnectedEventHandler != null)
+                    ConnectedEventHandler(null, EventArgs.Empty);
+            }
+            catch
+            {
+                if (ConnectFailedEventHandler != null)
+                    ConnectFailedEventHandler(null, EventArgs.Empty);
+            }
+        }
+
+        ///
+        /// 원격 제어 요청 메서드 (직접 연결 모드)
+        ///
         ///상대 IP 주소
         ///상대 포트 번호
         public static void Setup(string ip, int port)

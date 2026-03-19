@@ -5,8 +5,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using 원격제어기;
-
 namespace remotetest
 {
     public class Controller
@@ -61,9 +59,13 @@ namespace remotetest
         public void Start(string host_ip)
         {
             this.host_ip = host_ip;
-            img_sever = new ImageServer(MyIP, 20004);
+            // 릴레이 서버에 CTRL_IMAGE로 먼저 연결 (호스트가 수락 후 이미지를 받을 준비)
+            Socket imgSock = NetworkInfo.ConnectToRelay(host_ip, NetworkInfo.RelayPort,
+                                                        RelayRole.Ctrl, RelayChannel.Image);
+            img_sever = new ImageServer(imgSock);
             img_sever.RecvedImage += new RecvImageEventHandler(img_sever_RecvedImage);
-            SetupClient.Setup(host_ip, 20002);
+            // 릴레이를 통해 호스트에 연결 요청 전송
+            SetupClient.SetupRelay(host_ip, NetworkInfo.RelayPort);
         }
         void img_sever_RecvedImage(object sender, RecvImageEventArgs e)
         {
@@ -74,7 +76,10 @@ namespace remotetest
         }
         public void StartEventClient()
         {
-            sce = new SendEventClient(host_ip, 20010);
+            // 릴레이를 통해 이벤트 채널 연결
+            Socket evtSock = NetworkInfo.ConnectToRelay(host_ip, NetworkInfo.RelayPort,
+                                                        RelayRole.Ctrl, RelayChannel.Event);
+            sce = new SendEventClient(evtSock);
         }
         public void Stop()
         {
@@ -82,6 +87,11 @@ namespace remotetest
             {
                 img_sever.Close();
                 img_sever = null;
+            }
+            if (sce != null)
+            {
+                sce.Close();
+                sce = null;
             }
         }
     }

@@ -25,13 +25,13 @@ namespace remotetest
         public event RecvImageEventHandler RecvedImage = null;
 
         /// <summary>
-        /// 생성자
+        /// 생성자 (직접 연결 모드)
         /// </summary>
         /// <param name="ip">로컬 IP</param>
         /// <param name="port">포트</param>
         public ImageServer(string ip, int port)
         {
-            //소켓 생성            
+            //소켓 생성
             lis_sock = new Socket(AddressFamily.InterNetwork,
                                   SocketType.Stream,
                                   ProtocolType.Tcp);
@@ -44,11 +44,57 @@ namespace remotetest
             //Back 로그 큐 크기 설정
             lis_sock.Listen(5);
 
-
             //연결 수용 Loop을 수행하는 스레드 시작
             ThreadStart ts = new ThreadStart(AcceptLoop);
             accept_thread = new Thread(ts);
             accept_thread.Start();
+        }
+
+        /// <summary>
+        /// 생성자 (릴레이 모드) - 이미 연결된 릴레이 소켓으로 이미지를 수신
+        /// </summary>
+        /// <param name="relaySock">릴레이 서버와 연결된 소켓</param>
+        public ImageServer(Socket relaySock)
+        {
+            relaySock_ = relaySock;
+            accept_thread = new Thread(() => RelayReceiveLoop(relaySock)) { IsBackground = true };
+            accept_thread.Start();
+        }
+
+        Socket relaySock_;
+
+        void RelayReceiveLoop(Socket sock)
+        {
+            try
+            {
+                while (true)
+                {
+                    // 4바이트 길이 헤더 수신
+                    byte[] lbuf = new byte[4];
+                    int n = 0;
+                    while (n < 4) n += sock.Receive(lbuf, n, 4 - n, SocketFlags.None);
+                    int len = BitConverter.ToInt32(lbuf, 0);
+
+                    // 이미지 데이터 수신
+                    byte[] buffer = new byte[len];
+                    int trans = 0;
+                    while (trans < len)
+                        trans += sock.Receive(buffer, trans, len - trans, SocketFlags.None);
+
+                    if (RecvedImage != null)
+                    {
+                        IPEndPoint iep = sock.RemoteEndPoint as IPEndPoint;
+                        RecvImageEventArgs e = new RecvImageEventArgs(iep, ConvertBitmap(buffer));
+                        RecvedImage(this, e);
+                    }
+                    // 소켓을 닫지 않고 다음 프레임 수신 대기
+                }
+            }
+            catch { }
+            finally
+            {
+                try { sock.Close(); } catch { }
+            }
         }
 
         void AcceptLoop()
@@ -110,6 +156,11 @@ namespace remotetest
             {
                 lis_sock.Close();
                 lis_sock = null;
+            }
+            if (relaySock_ != null)
+            {
+                try { relaySock_.Close(); } catch { }
+                relaySock_ = null;
             }
         }
     }

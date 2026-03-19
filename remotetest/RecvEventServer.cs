@@ -21,7 +21,7 @@ namespace remotetest
         public event RecvKMEEventHandler RecvedKMEvent = null;
         Thread th;
         /// <summary>
-        /// 생성자
+        /// 생성자 (직접 연결 모드)
         /// </summary>
         /// <param name="ip">로컬 IP</param>
         /// <param name="port">포트</param>
@@ -39,6 +39,45 @@ namespace remotetest
             ThreadStart ts = new ThreadStart(AcceptLoop);
             th = new Thread(ts);
             th.Start();
+        }
+
+        /// <summary>
+        /// 생성자 (릴레이 모드) - 이미 연결된 릴레이 소켓으로 이벤트 수신
+        /// </summary>
+        /// <param name="relaySock">릴레이 서버와 연결된 소켓</param>
+        public RecvEventServer(Socket relaySock)
+        {
+            relaySock_ = relaySock;
+            th = new Thread(() => RelayReceiveLoop(relaySock)) { IsBackground = true };
+            th.Start();
+        }
+
+        Socket relaySock_;
+
+        void RelayReceiveLoop(Socket sock)
+        {
+            byte[] buffer = new byte[9];
+            try
+            {
+                while (true)
+                {
+                    // 9바이트 이벤트 메시지를 완전히 수신
+                    int received = 0;
+                    while (received < 9)
+                        received += sock.Receive(buffer, received, 9 - received, SocketFlags.None);
+
+                    if (RecvedKMEvent != null)
+                    {
+                        RecvKMEEventArgs e = new RecvKMEEventArgs(new Meta(buffer));
+                        RecvedKMEvent(this, e);
+                    }
+                }
+            }
+            catch { }
+            finally
+            {
+                try { sock.Close(); } catch { }
+            }
         }
 
         /// <summary>
@@ -84,6 +123,11 @@ namespace remotetest
             {
                 lis_sock.Close();//listen 소켓 닫기
                 lis_sock = null;
+            }
+            if (relaySock_ != null)
+            {
+                try { relaySock_.Close(); } catch { }
+                relaySock_ = null;
             }
         }
     }

@@ -25,9 +25,11 @@ namespace remotetest
     public class SendEventClient
     {
         IPEndPoint ep;
+        Socket relaySock_;
+        readonly object sendLock = new object();
 
         /// <summary>
-        /// 생성자
+        /// 생성자 (직접 연결 모드)
         /// </summary>
         /// <param name="ip">원격지 호스트 IP</param>
         /// <param name="port">포트</param>
@@ -35,6 +37,27 @@ namespace remotetest
         {
             //원격 제어 호스트 IP 단말 개체 생성
             ep = new IPEndPoint(IPAddress.Parse(ip), port);
+        }
+
+        /// <summary>
+        /// 생성자 (릴레이 모드) - 이미 연결된 릴레이 소켓을 지속 사용
+        /// </summary>
+        /// <param name="relaySock">릴레이 서버와 연결된 소켓</param>
+        public SendEventClient(Socket relaySock)
+        {
+            relaySock_ = relaySock;
+        }
+
+        /// <summary>
+        /// 클라이언트 닫기
+        /// </summary>
+        public void Close()
+        {
+            if (relaySock_ != null)
+            {
+                try { relaySock_.Close(); } catch { }
+                relaySock_ = null;
+            }
         }
 
         /// <summary>
@@ -51,13 +74,25 @@ namespace remotetest
 
         private void SendData(byte[] data)
         {
-            //소켓 생성
-            Socket sock = new Socket(AddressFamily.InterNetwork,
-                                     SocketType.Stream,
-                                     ProtocolType.Tcp);
-            sock.Connect(ep);//원격 제어 호스트에 연결
-            sock.Send(data); //이벤트 전송
-            sock.Close(); //소켓 닫기
+            if (relaySock_ != null)
+            {
+                // 릴레이 모드: 지속 소켓으로 전송
+                lock (sendLock)
+                {
+                    try { relaySock_.Send(data); }
+                    catch { }
+                }
+            }
+            else
+            {
+                // 직접 연결 모드: 이벤트마다 새 소켓 생성
+                Socket sock = new Socket(AddressFamily.InterNetwork,
+                                         SocketType.Stream,
+                                         ProtocolType.Tcp);
+                sock.Connect(ep);//원격 제어 호스트에 연결
+                sock.Send(data); //이벤트 전송
+                sock.Close(); //소켓 닫기
+            }
         }
 
         /// <summary>

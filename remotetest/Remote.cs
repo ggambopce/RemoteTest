@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Net.Sockets;
 using System.Windows.Forms;
 
 namespace remotetest
@@ -30,6 +31,7 @@ namespace remotetest
         public event RecvKMEEventHandler RecvedKMEvent = null;
 
         RecvEventServer res = null;
+        ImageClient imgClient = null;
 
         /// <summary>
         /// 데스크톱 사각 영역 - 가져오기
@@ -45,10 +47,14 @@ namespace remotetest
             // 주 화면의 전체 영역 구하기
             Rect = Screen.PrimaryScreen.Bounds;
 
+            // 릴레이 서버 시작
+            RelayServer.Start(NetworkInfo.RelayPort);
+
             // 원격제어 요청 수신 이벤트 메시지 핸들러 등록
             SetupServer.RecvedRCInfo +=
                 new RecvRCInfoEventHandler(SetupServer_RecvedRCInfo);
-            SetupServer.Start(MyIP, NetworkInfo.SetupPort);
+            // 릴레이 서버를 통해 컨트롤러 연결 대기
+            SetupServer.StartRelay("127.0.0.1", NetworkInfo.RelayPort);
         }
 
         void SetupServer_RecvedRCInfo(object sender, RecvRCInfoEventArgs e)
@@ -66,11 +72,31 @@ namespace remotetest
         }
 
         /// <summary>
+        /// 릴레이를 통해 이미지 전송 시작 (컨트롤러 수락 후 호출)
+        /// </summary>
+        public void StartImageRelay()
+        {
+            Socket imgSock = NetworkInfo.ConnectToRelay("127.0.0.1", NetworkInfo.RelayPort,
+                                                        RelayRole.Host, RelayChannel.Image);
+            imgClient = new ImageClient(imgSock);
+        }
+
+        /// <summary>
+        /// 이미지를 비동기로 전송
+        /// </summary>
+        public void SendImageAsync(System.Drawing.Image img)
+        {
+            imgClient?.SendImageAsync(img, null);
+        }
+
+        /// <summary>
         /// 메시지 수신 서버 가동
         /// </summary>
         public void RecvEventStart()
         {
-            res = new RecvEventServer(MyIP, NetworkInfo.EventPort);
+            Socket evtSock = NetworkInfo.ConnectToRelay("127.0.0.1", NetworkInfo.RelayPort,
+                                                        RelayRole.Host, RelayChannel.Event);
+            res = new RecvEventServer(evtSock);
             res.RecvedKMEvent += new RecvKMEEventHandler(res_RecvKMEEventHandler);
         }
 
@@ -100,6 +126,12 @@ namespace remotetest
                 res.Close();
                 res = null;
             }
+            if (imgClient != null)
+            {
+                imgClient.Close();
+                imgClient = null;
+            }
+            RelayServer.Close();
         }
     }
 }

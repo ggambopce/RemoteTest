@@ -68,6 +68,7 @@ namespace remotetest
         {
             this.Hide();
             Remote.Singleton.RecvEventStart();
+            Remote.Singleton.StartImageRelay();
             timer_send_img.Start();
             vcf.Show();
         }
@@ -87,8 +88,7 @@ namespace remotetest
             gp.Dispose();
             try
             {
-                ImageClient ic = new ImageClient(sip, NetworkInfo.ImgPort);
-                ic.SendImageAsync(bitmap, null);
+                Remote.Singleton.SendImageAsync(bitmap);
             }
             catch
             {

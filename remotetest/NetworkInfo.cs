@@ -10,9 +10,32 @@ namespace remotetest
 {
     ///
     /// 네트워크 정보 클래스 - 정적 클래스
-    /// 
+    ///
     public static class NetworkInfo
     {
+        ///
+        /// 랑데부(릴레이) 서버 주소 목록
+        ///
+        public static string[] RENDEZVOUS_SERVERS = new string[] { "127.0.0.1" };
+
+        ///
+        /// 릴레이 서버 포트
+        ///
+        public static short RelayPort
+        {
+            get { return 20020; }
+        }
+
+        ///
+        /// 릴레이 서버에 연결하고 역할/채널 헤더를 전송하는 헬퍼
+        ///
+        public static Socket ConnectToRelay(string ip, int port, RelayRole role, RelayChannel channel)
+        {
+            Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock.Connect(ip, port);
+            sock.Send(new byte[] { (byte)role, (byte)channel });
+            return sock;
+        }
         ///
         /// 이미지 서버 포트 - 가져오기
         /// 

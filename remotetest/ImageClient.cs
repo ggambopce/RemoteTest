@@ -17,13 +17,13 @@ namespace remotetest
         Socket sock;
 
         /// <summary>
-        /// 생성자
+        /// 생성자 (직접 연결 모드)
         /// </summary>
         /// <param name="ip">컨트롤러의 IP 주소</param>
         /// <param name="port">컨트롤러의 포트</param>
         public ImageClient(string ip, int port)
         {
-            //소켓 생성            
+            //소켓 생성
             sock = new Socket(AddressFamily.InterNetwork, //네트워크 주소 체계
                 SocketType.Stream,//전송 방식
                 ProtocolType.Tcp);//프로토콜
@@ -34,16 +34,25 @@ namespace remotetest
         }
 
         /// <summary>
+        /// 생성자 (릴레이 모드) - 이미 연결된 소켓을 지속적으로 재사용
+        /// </summary>
+        /// <param name="relaySock">릴레이 서버와 연결된 소켓</param>
+        public ImageClient(Socket relaySock)
+        {
+            relaySock_ = relaySock;
+        }
+
+        Socket relaySock_;
+
+        /// <summary>
         /// 이미지 전송 메서드
         /// </summary>
         /// <param name="img">전송할 이미지</param>
         /// <returns>전송 성공 여부</returns>
         public bool SendImage(Image img)
         {
-            if (sock == null)  //소켓이 없을 때
-            {
-                return false;
-            }
+            Socket s = relaySock_ ?? sock;
+            if (s == null) return false;
 
             MemoryStream ms = new MemoryStream();//메모리 스트림 개체 생성
             img.Save(ms, ImageFormat.Jpeg);//이미지 개체를 JPEG 포멧으로 메모리 스트림에 저장
@@ -52,20 +61,24 @@ namespace remotetest
             {
                 int trans = 0;
                 byte[] lbuf = BitConverter.GetBytes(data.Length);//버퍼의 크기를 바이트 배열로 변환
-                sock.Send(lbuf);//버퍼 길이 전송
+                s.Send(lbuf);//버퍼 길이 전송
 
                 while (trans < data.Length)//전송한 크기가 데이터 길이보다 작으면 반복
                 {
-                    trans += sock.Send(data, trans, data.Length - trans, SocketFlags.None);//버퍼 전송
+                    trans += s.Send(data, trans, data.Length - trans, SocketFlags.None);//버퍼 전송
                 }
 
-                sock.Close();//소켓 닫기
-                sock = null;
+                // 릴레이 모드는 소켓을 닫지 않고 지속 사용
+                if (relaySock_ == null)
+                {
+                    sock.Close();//소켓 닫기
+                    sock = null;
+                }
                 return true;
             }
             catch
             {
-                Application.Exit();//응용 끝내기
+                if (relaySock_ == null) Application.Exit();//직접 모드에서만 앱 종료
                 return false;
             }
         }
@@ -93,6 +106,11 @@ namespace remotetest
         /// </summary>
         public void Close()
         {
+            if (relaySock_ != null)
+            {
+                try { relaySock_.Close(); } catch { }
+                relaySock_ = null;
+            }
             if (sock != null)
             {
                 sock.Close();//소켓 닫기

@@ -13,11 +13,47 @@ namespace remotetest
     {
         static Socket lis_sock; //연결 요청 수신 Listening 소켓
         static Thread accept_thread = null; //연결 요청 허용 스레드
+        static volatile bool relayStopped = false;
 
         /// <summary>
         /// 연결 요청 수신 이벤트 핸들러
         /// </summary>
         static public event RecvRCInfoEventHandler RecvedRCInfo = null;
+
+        /// <summary>
+        /// 릴레이 서버를 통해 컨트롤러 연결을 대기하는 루프 시작
+        /// </summary>
+        static public void StartRelay(string relayIp, int relayPort)
+        {
+            relayStopped = false;
+            new Thread(() => RelayLoop(relayIp, relayPort)) { IsBackground = true, Name = "SetupRelay" }.Start();
+        }
+
+        static void RelayLoop(string relayIp, int relayPort)
+        {
+            while (!relayStopped)
+            {
+                try
+                {
+                    Socket sock = NetworkInfo.ConnectToRelay(relayIp, relayPort, RelayRole.Host, RelayChannel.Setup);
+                    // 릴레이 서버로부터 컨트롤러 IP 수신
+                    byte[] buf = new byte[256];
+                    int n = sock.Receive(buf);
+                    sock.Close();
+
+                    string ctrlIp = Encoding.ASCII.GetString(buf, 0, n).Trim();
+                    if (RecvedRCInfo != null && ctrlIp.Length > 0)
+                    {
+                        IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ctrlIp), 0);
+                        RecvedRCInfo(null, new RecvRCInfoEventArgs(ep));
+                    }
+                }
+                catch
+                {
+                    if (!relayStopped) Thread.Sleep(1000);
+                }
+            }
+        }
 
         /// <summary>
         /// 연결 요청 수신 서버 시작 메서드
@@ -68,6 +104,7 @@ namespace remotetest
         /// </summary>
         public static void Close()
         {
+            relayStopped = true;
             if (lis_sock != null)
             {
                 lis_sock.Close();
