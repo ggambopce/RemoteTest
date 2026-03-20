@@ -42,10 +42,15 @@
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AgentConfig.cs" />
+    <Compile Include="UrlProtocolRegistrar.cs" />
+    <Compile Include="ApiClient.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="ImageClient.cs" />
     <Compile Include="ImageServer.cs" />

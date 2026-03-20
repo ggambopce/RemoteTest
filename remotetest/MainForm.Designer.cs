@@ -20,6 +20,10 @@ namespace remotetest
             this.label2 = new System.Windows.Forms.Label();
             this.tbox_controller_ip = new System.Windows.Forms.TextBox();
             this.btn_ok = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.tbox_session_key = new System.Windows.Forms.TextBox();
+            this.btn_connect_api = new System.Windows.Forms.Button();
+            this.lbl_api_status = new System.Windows.Forms.Label();
             this.timer_send_img = new System.Windows.Forms.Timer(this.components);
             this.noti = new System.Windows.Forms.NotifyIcon(this.components);
             this.SuspendLayout();
@@ -63,6 +67,31 @@ namespace remotetest
             this.btn_ok.Text = "수락";
             this.btn_ok.UseVisualStyleBackColor = true;
             this.btn_ok.Click += new System.EventHandler(this.btn_ok_Click);
+            // label3
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 100);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(55, 12);
+            this.label3.Text = "세션 키:";
+            // tbox_session_key
+            this.tbox_session_key.Location = new System.Drawing.Point(80, 97);
+            this.tbox_session_key.Name = "tbox_session_key";
+            this.tbox_session_key.Size = new System.Drawing.Size(150, 21);
+            this.tbox_session_key.TabIndex = 4;
+            // btn_connect_api
+            this.btn_connect_api.Location = new System.Drawing.Point(240, 95);
+            this.btn_connect_api.Name = "btn_connect_api";
+            this.btn_connect_api.Size = new System.Drawing.Size(75, 23);
+            this.btn_connect_api.TabIndex = 5;
+            this.btn_connect_api.Text = "API 연결";
+            this.btn_connect_api.UseVisualStyleBackColor = true;
+            this.btn_connect_api.Click += new System.EventHandler(this.btn_connect_api_Click);
+            // lbl_api_status
+            this.lbl_api_status.AutoSize = true;
+            this.lbl_api_status.Location = new System.Drawing.Point(80, 125);
+            this.lbl_api_status.Name = "lbl_api_status";
+            this.lbl_api_status.Size = new System.Drawing.Size(0, 12);
+            this.lbl_api_status.Text = "";
             // timer_send_img
             this.timer_send_img.Interval = 100;
             this.timer_send_img.Tick += new System.EventHandler(this.timer_send_img_Tick);
@@ -73,13 +102,17 @@ namespace remotetest
             // MainForm
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(480, 217);
+            this.ClientSize = new System.Drawing.Size(480, 160);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.tbox_ip);
             this.Controls.Add(this.btn_setting);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.tbox_controller_ip);
             this.Controls.Add(this.btn_ok);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.tbox_session_key);
+            this.Controls.Add(this.btn_connect_api);
+            this.Controls.Add(this.lbl_api_status);
             this.Name = "MainForm";
             this.Text = "Remote Control";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
@@ -94,6 +127,10 @@ namespace remotetest
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox tbox_controller_ip;
         private System.Windows.Forms.Button btn_ok;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox tbox_session_key;
+        private System.Windows.Forms.Button btn_connect_api;
+        private System.Windows.Forms.Label lbl_api_status;
         private System.Windows.Forms.Timer timer_send_img;
         private System.Windows.Forms.NotifyIcon noti;
     }

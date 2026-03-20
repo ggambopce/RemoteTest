@@ -56,16 +56,17 @@ namespace remotetest
         }
 
 
-        public void Start(string host_ip)
+        public void Start(string host_ip, int port = 0)
         {
             this.host_ip = host_ip;
+            int relayPort = port > 0 ? port : NetworkInfo.RelayPort;
             // 릴레이 서버에 CTRL_IMAGE로 먼저 연결 (호스트가 수락 후 이미지를 받을 준비)
-            Socket imgSock = NetworkInfo.ConnectToRelay(host_ip, NetworkInfo.RelayPort,
+            Socket imgSock = NetworkInfo.ConnectToRelay(host_ip, relayPort,
                                                         RelayRole.Ctrl, RelayChannel.Image);
             img_sever = new ImageServer(imgSock);
             img_sever.RecvedImage += new RecvImageEventHandler(img_sever_RecvedImage);
             // 릴레이를 통해 호스트에 연결 요청 전송
-            SetupClient.SetupRelay(host_ip, NetworkInfo.RelayPort);
+            SetupClient.SetupRelay(host_ip, relayPort);
         }
         void img_sever_RecvedImage(object sender, RecvImageEventArgs e)
         {

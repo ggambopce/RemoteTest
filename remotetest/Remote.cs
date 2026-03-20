@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Net.Sockets;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace remotetest
@@ -30,8 +31,15 @@ namespace remotetest
         // 키보드, 마우스 메시지 수신 이벤트
         public event RecvKMEEventHandler RecvedKMEvent = null;
 
+        // API 모드: 세션 수락 완료 이벤트 (sessionKey 전달)
+        public event EventHandler<string> SessionAccepted = null;
+
         RecvEventServer res = null;
         ImageClient imgClient = null;
+
+        System.Threading.Timer _heartbeatTimer = null;
+        System.Threading.Timer _pollTimer = null;
+        string _currentSessionKey = null;
 
         /// <summary>
         /// 데스크톱 사각 영역 - 가져오기
@@ -53,8 +61,56 @@ namespace remotetest
             // 원격제어 요청 수신 이벤트 메시지 핸들러 등록
             SetupServer.RecvedRCInfo +=
                 new RecvRCInfoEventHandler(SetupServer_RecvedRCInfo);
-            // 릴레이 서버를 통해 컨트롤러 연결 대기
+        }
+
+        /// <summary>
+        /// 릴레이를 통해 컨트롤러 연결 대기 시작 (수동 수락 또는 API 자동 수락 시 호출)
+        /// </summary>
+        public void BeginAcceptingControllers()
+        {
             SetupServer.StartRelay("127.0.0.1", NetworkInfo.RelayPort);
+        }
+
+        /// <summary>
+        /// API 모드 시작: 서버에 등록 후 주기적 하트비트 + 세션 폴링 시작
+        /// </summary>
+        public void StartApiMode(string apiBaseUrl = null)
+        {
+            if (apiBaseUrl != null)
+                ApiClient.BaseUrl = apiBaseUrl;
+
+            ApiClient.Register(
+                AgentConfig.GetOrCreateLocalBoxId(),
+                Environment.MachineName,
+                "WINDOWS",
+                AgentConfig.AppVersion,
+                NetworkInfo.DefaultIP);
+
+            _heartbeatTimer = new System.Threading.Timer(_ => ApiClient.Heartbeat(), null, 0, 30_000);
+            _pollTimer      = new System.Threading.Timer(_ => CheckForSession(), null, 3_000, 3_000);
+        }
+
+        private void CheckForSession()
+        {
+            AgentPollResult r;
+            try { r = ApiClient.PollForSession(); }
+            catch { return; }
+
+            if (r == null || !r.HasPendingSession) return;
+
+            // 폴링 중단 (중복 처리 방지)
+            _pollTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+
+            _currentSessionKey = r.SessionKey;
+
+            BeginAcceptingControllers();
+            RecvEventStart();
+            StartImageRelay();
+
+            try { ApiClient.ActivateSession(r.SessionKey); }
+            catch { /* 활성화 실패 시에도 relay 채널은 유지 */ }
+
+            SessionAccepted?.Invoke(this, r.SessionKey);
         }
 
         void SetupServer_RecvedRCInfo(object sender, RecvRCInfoEventArgs e)
